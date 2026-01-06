@@ -1,0 +1,7 @@
+y = 5;
+
+fun poop(x){
+    out(x+y);
+}
+
+poop("rr");
