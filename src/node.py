@@ -35,11 +35,16 @@ class Conditionals:
         self.else_body = else_body
 
 class Functions:
-    def __init__(self, value, params, body):
-        self.value = value
+    def __init__(self, name, params, body):
+        self.name = name
         self.params = params
         self.body = body
+
 class FunctionCall:
     def __init__(self, name, args):
         self.name = name
         self.args = args
+
+class Input:
+    def __init__(self, prompt=None):
+        self.prompt = prompt

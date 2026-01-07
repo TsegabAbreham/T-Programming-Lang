@@ -1,4 +1,5 @@
 import re
+import unicodedata
 
 # Token types
 TOKEN_TYPES = [
@@ -9,37 +10,46 @@ TOKEN_TYPES = [
 # Patterns for multi-character tokens (order matters!)
 TOKEN_REGEX = [
     # Comments
-    (r'~~(.*?)~~', 'COMMENT'),            # multi-line comment using ~~
+    (r'~~([\s\S]*?)~~', 'COMMENT'),           # multi-line comment using ~~
     (r'#.*', 'COMMENT'),                  # single-line comment
 
     # Conditionals
-    (r'if\b', 'IF'),
-    (r'elif\b', 'ELSEIF'),
-    (r'else\b', 'ELSE'),
+    (r'ከሆነ\b', 'IF'),
+    (r'ካልሆነ\b', 'ELSEIF'),
+    (r'ለላ\b', 'ELSE'),
 
     # Functions
-    (r'fun\b', 'FUN'),
+    (r'ተግባር\b', 'FUN'),
 
+    # Key words
+    (r'አሳይ\b', 'PRINT'), 
+    (r'ጠይቅ\b', 'INPUT'),
 
-    # Variables and Variable related 
-    (r'(["\'])(.*?)\1', 'STRING'),  
-    (r'[a-zA-Z_][a-zA-Z0-9_]*', 'IDENTIFIER'),
-    (r'out\b', 'PRINT'),           
-    
     # Mathematical Operation
     (r'\d+', 'NUMBER'),
+
     (r'\+', 'PLUS'),
     (r'-', 'MINUS'),
     (r'\*', 'MULT'),
     (r'/', 'DIV'),
+
     (r'==', 'EQ'),
     (r'!=', 'NEQ'),
     (r'>=', 'GTE'),
     (r'<=', 'LTE'),
     (r'>', 'GT'),
     (r'<', 'LT'),
-    (r'=', 'EQUAL'),
 
+    (r'&&', 'AND'),
+    (r'\|\|', 'OR'),
+
+    (r'=', 'EQUAL'), # Assignment operator
+
+    # Variables and Variable related 
+    (r'(["\'])(.*?)\1', 'STRING'),  
+    (r'\b[\wሀ-ፐ]+\b', 'IDENTIFIER'),
+             
+    
 ]
 
 # Single-character tokens
@@ -52,7 +62,32 @@ SINGLE_CHAR_TOKENS = {
     '}': 'RBRACKET'
 }
 
+def normalize_code(code):
+    code = unicodedata.normalize("NFKC", code)
+
+    code = code.replace("\u00ad", "")
+    # Replace single character tokens with UTF
+    code = code.replace('።', ';')
+    code = code.replace('፣', ',')
+
+    # Replace multi character tokens with UTF
+    code = code.replace('እና', '&&')
+    code = code.replace('ወይም', '||')
+
+    replacements = {
+        "“": '"', "”": '"',
+        "‘": "'", "’": "'",
+        "‹": "<", "›": ">",
+        "«": "<<", "»": ">>",
+    }
+    for k, v in replacements.items():
+        code = code.replace(k, v)
+    return code
+
+
+
 def tokenize(code):
+    code = normalize_code(code)
     tokens = []
     
     while code:
@@ -95,3 +130,9 @@ def tokenize(code):
 
     return tokens
 
+if __name__ == "__main__":
+    print(tokenize("""
+        ከሆነ(1+1 == 2 ወይም 2+2 == 4){
+                   አሳይ("ይሰራል!")።
+                   } 
+    """))

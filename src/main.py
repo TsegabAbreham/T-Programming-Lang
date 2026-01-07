@@ -12,8 +12,10 @@ parser.add_argument('-f', '--file', type=str, help='File path to run')
 args = parser.parse_args()
 
 if args.file:
-    with open(args.file, 'r') as f:
+    # main.py (reading the source file)
+    with open(args.file, "r", encoding="utf-8-sig") as f:
         code = f.read()
+
 else:
     print("Interpreter for T programming language, made by Tsegab")
     code = input(">>> ")
