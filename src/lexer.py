@@ -59,7 +59,9 @@ SINGLE_CHAR_TOKENS = {
     ')': 'RPAREN',
     ',': 'COMMA',
     '{': 'LBRACKET',
-    '}': 'RBRACKET'
+    '}': 'RBRACKET',
+    '[': 'SLBRACKET',
+    ']': 'SRBRACKET'
 }
 
 def normalize_code(code):

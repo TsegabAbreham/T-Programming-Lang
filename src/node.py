@@ -22,6 +22,23 @@ class Assign:
         self.name = name
         self.value = value
 
+# --- List Variables ---
+class ListAssign:
+    def __init__(self, name, values):
+        self.name = name
+        self.values = values
+
+class ListAccessPos:
+    def __init__(self, name, index):
+        self.name = name
+        self.index = index
+
+class AssignListElement:
+    def __init__(self, list_access, value):
+        self.list_access = list_access  # ListAccess node
+        self.value = value              # expression node
+
+
 class Print:
     def __init__(self, expr):
         self.expr = expr
