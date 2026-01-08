@@ -1,5 +1,6 @@
 Tlang-vscode
 __pycache__/
+build
 *.pyc
 *.pyo
 *.pyd
