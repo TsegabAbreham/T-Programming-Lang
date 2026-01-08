@@ -66,28 +66,33 @@ def execute(stmt):
 
     # Function call
     elif isinstance(stmt, FunctionCall):
-        if stmt.name not in env.functions:
-            raise Exception(f"Function '{stmt.name}' is not defined")
+        # Check if it's a user-defined function first
+        if stmt.name in env.functions:
+            func = env.functions[stmt.name]
 
-        func = env.functions[stmt.name]
+            if len(stmt.args) != len(func.params):
+                raise Exception(
+                    f"Function '{stmt.name}' expects {len(func.params)} arguments "
+                    f"but got {len(stmt.args)}"
+                )
 
-        if len(stmt.args) != len(func.params):
-            raise Exception(
-                f"Function '{stmt.name}' expects {len(func.params)} arguments "
-                f"but got {len(stmt.args)}"
-            )
+            # Evaluate arguments
+            arg_values = [evaluate(arg) for arg in stmt.args]
 
-        arg_values = [evaluate(arg) for arg in stmt.args]
-        local_scope = dict(zip(func.params, arg_values))
+            # Create local scope for the call
+            old_memory = env.memory
+            env.memory = {**env.memory, **dict(zip(func.params, arg_values))}
 
-        # Save old memory and create a merged local memory for the call
-        old_memory = env.memory
-        env.memory = {**env.memory, **local_scope}
+            # Execute the function body
+            for s in func.body:
+                execute(s)
 
-        for s in func.body:
-            execute(s)
+            # Restore previous memory
+            env.memory = old_memory
 
-        env.memory = old_memory
+        else:
+            # If it's not a user function, treat it as an expression (built-in)
+            evaluate(stmt)
 
     # expression statements
     elif isinstance(stmt, (ListAccessPos, BinOp, Variable, Number, String)):

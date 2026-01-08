@@ -16,7 +16,7 @@ TOKEN_REGEX = [
     # Conditionals
     (r'ከሆነ\b', 'IF'),
     (r'ካልሆነ\b', 'ELSEIF'),
-    (r'ለላ\b', 'ELSE'),
+    (r'ሌላ\b', 'ELSE'),
 
     # Loops
     (r'እያለ\b', 'WHILE'),

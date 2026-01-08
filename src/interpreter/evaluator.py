@@ -1,6 +1,7 @@
 from node import *
 import interpreter.env as env
 
+from runtime.builtins import builtins, BuiltinFunction
 
 # Expression evaluation separated into its own module.
 def evaluate(node):
@@ -11,10 +12,13 @@ def evaluate(node):
         return node.value
 
     elif isinstance(node, Variable):
-        if node.name not in env.memory:
-            raise Exception(f"Undefined variable '{node.name}'")
-        return env.memory[node.name]
-
+        if node.name in env.memory:     
+            return env.memory[node.name]
+        
+        if node.name in builtins:
+            return builtins[node.name]
+        raise Exception(f"Undefined variable '{node.name}'")
+        
     # List literal: [1, 2, 3]
     elif isinstance(node, ListAssign) and node.name is None:
         return [evaluate(item) for item in node.values]
@@ -65,6 +69,15 @@ def evaluate(node):
         if node.prompt:
             return input(node.prompt)
         return input()
+    
+    elif isinstance(node, FunctionCall):
+        func = evaluate(Variable(node.name))
+        args = [evaluate(arg) for arg in node.args]
+
+        if hasattr(func, "call"):
+            return func.call(args)
+
+        raise Exception(f"'{node.name}' is not callable")
 
 
     else:

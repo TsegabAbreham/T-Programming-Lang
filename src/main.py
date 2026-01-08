@@ -1,25 +1,36 @@
 # main.py
 
 import argparse
-
+import os
 from lexer import tokenize
 from parser import Parser
 from interpreter.interpreter import run
 
-parser = argparse.ArgumentParser(description="Tsegab Programming Language Interpreter")
-parser.add_argument('-f', '--file', type=str, help='File path to run')
-
+# -------------------------------
+# Argument parsing
+# -------------------------------
+parser = argparse.ArgumentParser(description="Abyssinia Lang Interpreter")
+parser.add_argument('-f', '--file', type=str, help='Path to .aby file to run')
 args = parser.parse_args()
 
 if args.file:
-    # main.py (reading the source file)
-    with open(args.file, "r", encoding="utf-8-sig") as f:
-        code = f.read()
+    # Get absolute path to the .aby file
+    aby_file = os.path.abspath(args.file)
+    
+    # Change working directory to the .aby file's folder
+    aby_dir = os.path.dirname(aby_file)
+    os.chdir(aby_dir)
 
+    # Read source code
+    with open(aby_file, "r", encoding="utf-8-sig") as f:
+        code = f.read()
 else:
-    print("Interpreter for T programming language, made by Tsegab")
+    print("Interpreter for AbyssLang programming language, made by Tsegab")
     code = input(">>> ")
 
+# -------------------------------
+# Tokenize, parse, run
+# -------------------------------
 tokens = tokenize(code)
 parser = Parser(tokens)
 ast = parser.parse()
