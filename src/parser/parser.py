@@ -7,6 +7,7 @@ from parser.control import ControlParser
 from parser.statments import StatementParser
 from parser.loops import WhileLoopParser, ForLoopParser
 from parser.imports import ImportParser
+from parser.classes import ClassParser
 
 from node import *
 from error import *
@@ -21,7 +22,8 @@ class Parser(
     StatementParser,
     WhileLoopParser, 
     ForLoopParser,
-    ImportParser
+    ImportParser,
+    ClassParser
 ):
     def parse_statement(self):
         t = self.current()[0]
@@ -40,6 +42,8 @@ class Parser(
             return self.parse_assignment_or_expr_statement()
         if t == "IMPORT":
             return self.parse_import()
+        if t == "CLASS":
+            return self.parse_class()
 
         raise unexpected_token(self)
 

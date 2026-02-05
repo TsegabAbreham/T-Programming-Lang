@@ -39,6 +39,9 @@ TOKEN_REGEX = [
     (r'አስገባ\b', 'IMPORT'),
     (r'እንደ\b', 'AS'),
 
+    # Classes
+    (r'ክፍል\b', 'CLASS'),
+
     # Mathematical Operation
     (r'\d+', 'NUMBER'),
 
@@ -149,7 +152,5 @@ def tokenize(code):
 
 if __name__ == "__main__":
     print(tokenize("""
-        ከሆነ(1+1 == 2 ወይም 2+2 == 4){
-                   እያለ
-                   } 
+        ክፍል፡ ሃሃሃ
     """))

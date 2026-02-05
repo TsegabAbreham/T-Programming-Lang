@@ -3,4 +3,5 @@
 
 memory = {}
 functions = {}
+classes = {}
 modules = {}

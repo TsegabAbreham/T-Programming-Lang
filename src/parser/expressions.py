@@ -36,6 +36,10 @@ class ExpressionParser:
             if self.current()[0] == "DOT":
                 self.eat("DOT")
                 member = self.eat("IDENTIFIER")
+                # If a call follows the member (e.g. Module.member(...))
+                # return a FunctionCall whose name is a ModuleAccess node.
+                if self.current()[0] == "LPAREN":
+                    return self.parse_function_call(ModuleAccess(name, member))
                 return ModuleAccess(name, member)
             # function call: f(...)
             if self.current()[0] == "LPAREN":

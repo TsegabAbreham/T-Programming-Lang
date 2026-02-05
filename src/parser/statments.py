@@ -88,5 +88,7 @@ class StatementParser:
             return self.parse_expression_statement()
         if t == "IMPORT":
             return self.parse_import()
+        if t == "CLASS":
+            return self.parse_class()
 
         raise unexpected_token(self)

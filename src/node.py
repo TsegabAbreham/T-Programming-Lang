@@ -51,6 +51,7 @@ class Conditionals:
         self.elseif_body = elseif_body
         self.else_body = else_body
 
+# --- Functions ---
 class Functions:
     def __init__(self, name, params, body):
         self.name = name
@@ -89,3 +90,14 @@ class ModuleAccess:
     def __init__(self, module_name, member_name):
         self.module_name = module_name
         self.member_name = member_name
+
+# --- Classes ---
+class Classes:
+    def __init__(self, name, body):
+        self.name = name
+        self.body = body
+
+class ClassCall:
+    def __init__(self, name, functionName):
+        self.name = name
+        self.functionName = functionName

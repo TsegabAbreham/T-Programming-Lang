@@ -69,26 +69,41 @@ def execute(stmt):
 
     # Function call
     elif isinstance(stmt, FunctionCall):
-        # First check local functions
-        if stmt.name in env.functions:
-            func = env.functions[stmt.name]
-
+        # Resolve function reference. `stmt.name` may be a ModuleAccess node
+        # (module/class member) or a plain identifier.
+        func = None
+        if isinstance(stmt.name, ModuleAccess):
+            module_name = stmt.name.module_name
+            member = stmt.name.member_name
+            # class method
+            if module_name in env.classes:
+                classname = env.classes[module_name]
+                for s in classname.body:
+                    if isinstance(s, Functions) and s.name == member:
+                        func = s
+                        break
+            # imported module
+            elif module_name in env.modules and member in env.modules[module_name]:
+                func = env.modules[module_name][member]
         else:
-            # Look in imported modules
-            found = False
-            for module in env.modules.values():
-                if stmt.name in module and isinstance(module[stmt.name], Functions):
-                    func = module[stmt.name]
-                    found = True
-                    break
-            if not found:
-                # Maybe built-in
-                return evaluate(stmt)
+            # local function
+            if stmt.name in env.functions:
+                func = env.functions[stmt.name]
+            else:
+                # Look in imported modules for a plain-name function
+                for module in env.modules.values():
+                    if stmt.name in module and isinstance(module[stmt.name], Functions):
+                        func = module[stmt.name]
+                        break
+
+        # If no user-defined function found, defer to evaluator (for builtins)
+        if func is None:
+            return evaluate(stmt)
 
         # Check argument count
         if len(stmt.args) != len(func.params):
             raise Exception(
-                f"Function '{stmt.name}' expects {len(func.params)} arguments but got {len(stmt.args)}"
+                f"Function '{getattr(func, 'name', stmt.name)}' expects {len(func.params)} arguments but got {len(stmt.args)}"
             )
 
         # Evaluate arguments
@@ -105,12 +120,70 @@ def execute(stmt):
         # Restore previous memory
         env.memory = old_memory
 
+    elif isinstance(stmt, ModuleAccess):
+        # If this looks like a class method or module function used as a statement
+        # (e.g. Class:method; or module:fn;), execute the function body with no args.
+        # Check classes first
+        if stmt.module_name in env.classes:
+            classname = env.classes[stmt.module_name]
+            for s in classname.body:
+                if isinstance(s, Functions) and s.name == stmt.member_name:
+                    func = s
+                    break
+            else:
+                raise Exception(f"Class '{stmt.module_name}' has no member '{stmt.member_name}'")
+
+            if len(func.params) != 0:
+                raise Exception(f"Method '{func.name}' expects {len(func.params)} arguments")
+
+            old_memory = env.memory
+            env.memory = {**env.memory}
+            for s in func.body:
+                execute(s)
+            env.memory = old_memory
+            return
+
+        # Then check imported modules
+        if stmt.module_name in env.modules:
+            module = env.modules[stmt.module_name]
+            if stmt.member_name in module and isinstance(module[stmt.member_name], Functions):
+                func = module[stmt.member_name]
+                if len(func.params) != 0:
+                    raise Exception(f"Function '{func.name}' expects {len(func.params)} arguments")
+                old_memory = env.memory
+                env.memory = {**env.memory}
+                for s in func.body:
+                    execute(s)
+                env.memory = old_memory
+                return
+
+        # fallback: just evaluate access (may raise if not present)
+        evaluate(stmt)
+
+    # Class definition
+    elif isinstance(stmt, Classes):
+        env.classes[stmt.name] = stmt
+    
+    # Class call
+    elif isinstance(stmt, ClassCall):
+         # First check local functions
+        if stmt.name in env.classes:
+            classname = env.classes[stmt.name]
+        
+
+
+        # Execute function body statements
+        instance = {}
+        for s in classname.body:
+            if isinstance(s, Functions):
+                instance[s.name] = s
+        return instance
+            
+
 
     # expression statements
     elif isinstance(stmt, (ListAccessPos, BinOp, Variable, Number, String)):
         evaluate(stmt)
-
-        # executor.py
     
     elif isinstance(stmt, ImportStatement):
         import_path = stmt.path
@@ -145,3 +218,4 @@ def execute(stmt):
 def run(ast):
     for stmt in ast:
         execute(stmt)
+        
